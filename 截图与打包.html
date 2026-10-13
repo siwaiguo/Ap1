@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AP1 截图与打包</title><link rel="stylesheet" href="style.css"><style>.captures{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.capture{background:white;padding:15px;border:1px solid #dde3eb;border-radius:8px}.capture canvas{height:300px;width:100%}.capture h2{font-size:15px}.actions{margin:20px 0}.actions button{padding:12px 20px}@media(max-width:850px){.captures{grid-template-columns:1fr}}</style></head><body><main><header><span class="tag">AP1 / 提交准备</span><h1>三种模式截图与打包</h1><p>这里直接调用作业的 WebGL 渲染器生成三张 PNG，并将截图、源码和说明一起打包。无需安装截图软件。</p></header><div class="captures"><section class="capture"><h2>点云 · 混沌游戏 / 20,000 点</h2><canvas id="points" width="900" height="720"></canvas></section><section class="capture"><h2>线框 · 递归细分 / 深度 5</h2><canvas id="lines" width="900" height="720"></canvas></section><section class="capture"><h2>实体 · 递归细分 / 深度 5</h2><canvas id="solid" width="900" height="720"></canvas></section></div><div class="actions"><button id="download">下载含三张截图的完整 ZIP</button> <a href="index.html">返回交互页面</a></div><p id="message" role="status">正在生成截图…</p><p class="note">PNG 是真实 WebGL 画布导出，包含绘制区域。若老师需要整个浏览器界面截图，请在交互页面依次切换模式，用系统截图保存。ZIP 不会发送任何个人信息。</p></main><script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+in vec2 aPosition;
+uniform float uScale;
+uniform vec2 uOffset;
+uniform float uAspect;
+uniform float uPointSize;
+uniform vec3 uColorLow;
+uniform vec3 uColorHigh;
+out vec3 vColor;
+void main() {
+  vec2 p = aPosition * uScale + uOffset;
+  p.x /= uAspect;
+  gl_Position = vec4(p, 0.0, 1.0);
+  gl_PointSize = uPointSize;
+  float t = clamp((aPosition.y + 0.85) / 1.7, 0.0, 1.0);
+  vColor = mix(uColorLow, uColorHigh, t);
+}
+</script><script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision mediump float;
+in vec3 vColor;
+out vec4 fragmentColor;
+void main() { fragmentColor = vec4(vColor, 1.0); }
+</script><script src="Common/initShaders.js"></script><script src="Common/MV.js"></script><script src="js/geometry.js"></script><script src="js/renderer.js"></script><script src="js/zip.js"></script><script src="js/package.js"></script></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AP1 · 交互式二维分形</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header><span class="tag">计算机图形学 / AP1</span><h1>交互式二维分形</h1><p>用两种方法生成 Sierpinski 垫片，观察点、线与三角形的区别。</p></header>
+  <div class="workspace">
+    <section class="viewer" aria-label="分形绘图区">
+      <div class="bar"><strong id="scene-title">混沌游戏 · 点云</strong><span id="zoom-label">缩放 1.00×</span></div>
+      <div class="canvas-wrap"><canvas id="gl-canvas" width="900" height="720" tabindex="0" aria-label="分形画布，可拖动平移，滚轮缩放"></canvas><div id="error" role="alert" hidden></div></div>
+      <div class="status"><span id="statistics">准备顶点数据…</span><span id="animation-status">逐点生长中</span></div>
+      <div class="hint">左键拖动平移 · 滚轮缩放 · <kbd>1</kbd>点云 <kbd>2</kbd>线框 <kbd>3</kbd>实体 · <kbd>空格</kbd>暂停</div>
+    </section>
+    <aside>
+      <h2>参数设置</h2>
+      <label for="mode">绘制模式</label><select id="mode"><option value="points">1 · 点云 POINTS</option><option value="lines">2 · 线框 LINES</option><option value="solid">3 · 实体 TRIANGLES</option></select>
+      <label for="algorithm">生成算法</label><select id="algorithm"><option value="chaos">混沌游戏（随机迭代）</option><option value="recursive">递归细分</option></select><p class="note" id="algorithm-note">点云可选择两种算法；线框和实体使用递归细分。</p>
+      <label for="point-count">点云顶点数 <output id="count-value">20,000</output></label><input type="range" id="point-count" min="5000" max="100000" step="1000" value="20000">
+      <label for="depth">递归深度 <output id="depth-value">5</output></label><input type="range" id="depth" min="0" max="6" step="1" value="5">
+      <label for="point-size">点大小 <output id="size-value">2 px</output></label><input type="range" id="point-size" min="1" max="8" step="1" value="2">
+      <label for="palette">配色方案</label><select id="palette"><option value="blue">蓝色渐变</option><option value="warm">橙红渐变</option><option value="green">绿色渐变</option></select>
+      <details><summary>选做 E1：多边形实验</summary><label for="polygon">顶点布局（混沌游戏）</label><select id="polygon"><option value="3">三角形</option><option value="5">五边形</option><option value="6">六边形</option></select><label for="ratio">向目标顶点移动的比例 <output id="ratio-value">0.500</output></label><input type="range" id="ratio" min="0.5" max="0.75" step="0.001" value="0.5"><p class="note">三角形基线固定为 1/2。五、六边形可以改变比例，比较重叠与空洞。</p></details>
+      <div class="buttons"><button id="pause">暂停生长</button><button id="restart">重新生长</button><button id="reset">复位视图</button><button id="export">导出当前 PNG</button></div>
+      <p class="note">下载三张图时依次切换模式，等待点云生长完成后导出。截图文件名与 README 中的路径一致。</p>
+    </aside>
+  </div>
+  <footer>原生 WebGL 2.0 + JavaScript · 教材 Common 工具库 · <a href="README.html">作业说明</a> · <a href="截图与打包.html">生成三种模式截图并打包</a></footer>
+</main>
+<!-- WebGL 2.0 使用 GLSL ES 3.00，版本声明必须是第一行。 -->
+<script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+in vec2 aPosition;
+uniform float uScale;
+uniform vec2 uOffset;
+uniform float uAspect;
+uniform float uPointSize;
+uniform vec3 uColorLow;
+uniform vec3 uColorHigh;
+out vec3 vColor;
+void main() {
+  vec2 p = aPosition * uScale + uOffset;
+  p.x /= uAspect;
+  gl_Position = vec4(p, 0.0, 1.0);
+  gl_PointSize = uPointSize;
+  float t = clamp((aPosition.y + 0.85) / 1.7, 0.0, 1.0);
+  vColor = mix(uColorLow, uColorHigh, t);
+}
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision mediump float;
+in vec3 vColor;
+out vec4 fragmentColor;
+void main() { fragmentColor = vec4(vColor, 1.0); }
+</script>
+<script src="Common/webgl-utils.js"></script><script src="Common/initShaders.js"></script><script src="Common/MV.js"></script>
+<script src="js/geometry.js"></script><script src="js/renderer.js"></script><script src="js/interaction.js"></script><script src="js/ui.js"></script><script src="js/main.js"></script>
+</body></html>
